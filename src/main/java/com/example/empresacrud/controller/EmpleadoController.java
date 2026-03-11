@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/empleados")
+@RequestMapping("/api/empleados")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 
@@ -20,7 +20,7 @@ public class EmpleadoController {
 
     private final EmpleadoService empleadoService;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Empleado> listarTodos(){
         return empleadoService.listarTodos();
     }
@@ -30,7 +30,7 @@ public class EmpleadoController {
         return empleadoService.buscarPorId(id);
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public Empleado crearEmpleado (@RequestBody Empleado empleado){
         return empleadoService.guardar(empleado);
     }
