@@ -6,6 +6,7 @@ public record EmpleadoResponse(
         String apellido,
         String correo,
         double salario,
-        DepartamentoResumenDto departamento
+        Long departamentoId,
+        String departamentoNombre
 ) {
 }

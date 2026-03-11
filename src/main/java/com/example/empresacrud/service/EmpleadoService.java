@@ -1,5 +1,4 @@
 package com.example.empresacrud.service;
-import com.example.empresacrud.dto.DepartamentoResumenDto;
 import com.example.empresacrud.dto.EmpleadoRequest;
 import com.example.empresacrud.dto.EmpleadoResponse;
 import com.example.empresacrud.model.Departamento;
@@ -11,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -23,16 +23,53 @@ public class EmpleadoService {
     private final DepartamentoRepository departamentoRepository;
 
     public List<EmpleadoResponse> listarTodos() {
-        return empleadoRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        List<Empleado> empleados = empleadoRepository.findAll();
+        List<EmpleadoResponse> respuesta = new ArrayList<>();
+
+        for (Empleado empleado : empleados) {
+            Long departamentoId = null;
+            String departamentoNombre = null;
+
+            if (empleado.getDepartamento() != null) {
+                departamentoId = empleado.getDepartamento().getId();
+                departamentoNombre = empleado.getDepartamento().getNombre();
+            }
+
+            respuesta.add(new EmpleadoResponse(
+                    empleado.getId(),
+                    empleado.getNombre(),
+                    empleado.getApellido(),
+                    empleado.getCorreo(),
+                    empleado.getSalario(),
+                    departamentoId,
+                    departamentoNombre
+            ));
+        }
+
+        return respuesta;
     }
 
     public EmpleadoResponse buscarPorId(Long id) {
-        return empleadoRepository.findById(id)
-                .map(this::toResponse)
+        Empleado empleado = empleadoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Empleado no encontrado"));
+
+        Long departamentoId = null;
+        String departamentoNombre = null;
+
+        if (empleado.getDepartamento() != null) {
+            departamentoId = empleado.getDepartamento().getId();
+            departamentoNombre = empleado.getDepartamento().getNombre();
+        }
+
+        return new EmpleadoResponse(
+                empleado.getId(),
+                empleado.getNombre(),
+                empleado.getApellido(),
+                empleado.getCorreo(),
+                empleado.getSalario(),
+                departamentoId,
+                departamentoNombre
+        );
     }
 
     public EmpleadoResponse guardar(EmpleadoRequest request) {
@@ -43,7 +80,17 @@ public class EmpleadoService {
         empleadoNuevo.setCorreo(request.correo());
         empleadoNuevo.setSalario(request.salario());
         empleadoNuevo.setDepartamento(departamento);
-        return toResponse(empleadoRepository.save(empleadoNuevo));
+        Empleado guardado = empleadoRepository.save(empleadoNuevo);
+
+        return new EmpleadoResponse(
+                guardado.getId(),
+                guardado.getNombre(),
+                guardado.getApellido(),
+                guardado.getCorreo(),
+                guardado.getSalario(),
+                departamento.getId(),
+                departamento.getNombre()
+        );
     }
 
     public EmpleadoResponse actualizar(Long id, EmpleadoRequest request) {
@@ -54,9 +101,20 @@ public class EmpleadoService {
         empleado.setApellido(request.apellido());
         empleado.setCorreo(request.correo());
         empleado.setSalario(request.salario());
-        empleado.setDepartamento(buscarDepartamento(request.departamentoId()));
+        Departamento departamento = buscarDepartamento(request.departamentoId());
+        empleado.setDepartamento(departamento);
 
-        return toResponse(empleadoRepository.save(empleado));
+        Empleado actualizado = empleadoRepository.save(empleado);
+
+        return new EmpleadoResponse(
+                actualizado.getId(),
+                actualizado.getNombre(),
+                actualizado.getApellido(),
+                actualizado.getCorreo(),
+                actualizado.getSalario(),
+                departamento.getId(),
+                departamento.getNombre()
+        );
     }
 
     public void eliminar(Long id){
@@ -69,22 +127,6 @@ public class EmpleadoService {
     private Departamento buscarDepartamento(Long departamentoId) {
         return departamentoRepository.findById(departamentoId)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Departamento no encontrado"));
-    }
-
-    private EmpleadoResponse toResponse(Empleado empleado) {
-        Departamento departamento = empleado.getDepartamento();
-        DepartamentoResumenDto departamentoDto = departamento == null
-                ? null
-                : new DepartamentoResumenDto(departamento.getId(), departamento.getNombre());
-
-        return new EmpleadoResponse(
-                empleado.getId(),
-                empleado.getNombre(),
-                empleado.getApellido(),
-                empleado.getCorreo(),
-                empleado.getSalario(),
-                departamentoDto
-        );
     }
 
 }
