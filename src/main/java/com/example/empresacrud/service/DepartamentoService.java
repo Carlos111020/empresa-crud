@@ -1,13 +1,19 @@
 package com.example.empresacrud.service;
 
 
+import com.example.empresacrud.dto.DepartamentoRequest;
+import com.example.empresacrud.dto.DepartamentoResponse;
+import com.example.empresacrud.dto.EmpleadoResumenDto;
 import com.example.empresacrud.model.Departamento;
 import com.example.empresacrud.repository.DepartamentoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -17,38 +23,62 @@ public class DepartamentoService {
 
     private final DepartamentoRepository departamentoRespository;
 
-    public List<Departamento> listarTodos(){
-        return departamentoRespository.findAll();
+    public List<DepartamentoResponse> listarTodos(){
+        return departamentoRespository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Optional <Departamento> buscarporId (Long id){
-        return departamentoRespository.findById(id);
+    public DepartamentoResponse buscarporId(Long id){
+        return departamentoRespository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Departamento no encontrado"));
     }
 
-    public Departamento guardar(Departamento departamento){
-        return departamentoRespository.save(departamento);
+    public DepartamentoResponse guardar(DepartamentoRequest request){
+        Departamento departamento = new Departamento();
+        departamento.setNombre(request.nombre());
+        departamento.setDescripcion(request.descripcion());
+        return toResponse(departamentoRespository.save(departamento));
     }
-    public Departamento actualizar (Long id, Departamento departamentoActualizado){
-        Optional<Departamento> departamentoExistente = departamentoRespository.findById(id);
 
-        if (departamentoExistente.isPresent()){
-            Departamento departamento = departamentoExistente.get();
-            departamento.setNombre(departamentoActualizado.getNombre());
-            departamento.setEmpleados(departamentoActualizado.getEmpleados());
-            departamento.setDescripcion(departamentoActualizado.getDescripcion());
-            return departamentoRespository.save(departamento);
-        }
-        else {
-            System.out.println("Error al actualizar el departamento");
-            return null;
-        }
+    public DepartamentoResponse actualizar(Long id, DepartamentoRequest request){
+        Departamento departamento = departamentoRespository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Departamento no encontrado"));
 
-
+        departamento.setNombre(request.nombre());
+        departamento.setDescripcion(request.descripcion());
+        return toResponse(departamentoRespository.save(departamento));
     }
+
     public void eliminar (Long id){
+        if (!departamentoRespository.existsById(id)) {
+            throw new ResponseStatusException(NOT_FOUND, "Departamento no encontrado");
+        }
         departamentoRespository.deleteById(id);
     }
 
+    private DepartamentoResponse toResponse(Departamento departamento) {
+        List<EmpleadoResumenDto> empleados = departamento.getEmpleados() == null
+                ? Collections.emptyList()
+                : departamento.getEmpleados()
+                .stream()
+                .map(empleado -> new EmpleadoResumenDto(
+                        empleado.getId(),
+                        empleado.getNombre(),
+                        empleado.getApellido(),
+                        empleado.getCorreo()
+                ))
+                .toList();
+
+        return new DepartamentoResponse(
+                departamento.getId(),
+                departamento.getNombre(),
+                departamento.getDescripcion(),
+                empleados
+        );
+    }
 
 
 }

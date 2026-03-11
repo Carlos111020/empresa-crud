@@ -1,14 +1,13 @@
 package com.example.empresacrud.controller;
 
-import com.example.empresacrud.model.Departamento;
+import com.example.empresacrud.dto.DepartamentoRequest;
+import com.example.empresacrud.dto.DepartamentoResponse;
 import com.example.empresacrud.service.DepartamentoService;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/departamentos")
@@ -21,23 +20,23 @@ public class DepartamentoController {
     private final DepartamentoService departamentoService;
 
     @GetMapping("/all")
-    public List<Departamento> listarTodos (){
+    public List<DepartamentoResponse> listarTodos (){
         return departamentoService.listarTodos();
     }
 
     @GetMapping("/{id}")
-    public Optional<Departamento> buscarPorId (@PathVariable Long id){
+    public DepartamentoResponse buscarPorId (@PathVariable Long id){
         return departamentoService.buscarporId(id);
     }
 
     @PostMapping("/crear")
-    public Departamento guardar (@RequestBody Departamento departamento){
+    public DepartamentoResponse guardar (@Valid @RequestBody DepartamentoRequest departamento){
         return departamentoService.guardar(departamento);
 
     }
 
     @PutMapping("/{id}")
-    public Departamento actualizar (@PathVariable Long id, @RequestBody Departamento departamento){
+    public DepartamentoResponse actualizar (@PathVariable Long id, @Valid @RequestBody DepartamentoRequest departamento){
         return departamentoService.actualizar(id, departamento);
     }
 

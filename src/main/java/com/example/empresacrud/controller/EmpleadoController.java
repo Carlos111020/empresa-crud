@@ -1,15 +1,12 @@
 package com.example.empresacrud.controller;
-import com.example.empresacrud.model.Departamento;
-import com.example.empresacrud.model.Empleado;
-import com.example.empresacrud.service.DepartamentoService;
+import com.example.empresacrud.dto.EmpleadoRequest;
+import com.example.empresacrud.dto.EmpleadoResponse;
 import com.example.empresacrud.service.EmpleadoService;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/empleados")
@@ -21,22 +18,22 @@ public class EmpleadoController {
     private final EmpleadoService empleadoService;
 
     @GetMapping("/all")
-    public List<Empleado> listarTodos(){
+    public List<EmpleadoResponse> listarTodos(){
         return empleadoService.listarTodos();
     }
 
     @GetMapping("/{id}")
-    public Optional<Empleado> buscarPorId (@PathVariable Long id){
+    public EmpleadoResponse buscarPorId (@PathVariable Long id){
         return empleadoService.buscarPorId(id);
     }
 
     @PostMapping("/crear")
-    public Empleado crearEmpleado (@RequestBody Empleado empleado){
+    public EmpleadoResponse crearEmpleado (@Valid @RequestBody EmpleadoRequest empleado){
         return empleadoService.guardar(empleado);
     }
 
     @PutMapping("/{id}")
-    public Empleado actualizarEmpleado (@PathVariable Long id, @RequestBody Empleado empleado){
+    public EmpleadoResponse actualizarEmpleado (@PathVariable Long id, @Valid @RequestBody EmpleadoRequest empleado){
         return empleadoService.actualizar(id, empleado);
     }
 
