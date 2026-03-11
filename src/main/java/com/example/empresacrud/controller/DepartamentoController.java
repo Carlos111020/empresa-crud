@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/departamentos")
+@RequestMapping("/api/departamentos")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 
@@ -20,7 +20,7 @@ public class DepartamentoController {
 
     private final DepartamentoService departamentoService;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Departamento> listarTodos (){
         return departamentoService.listarTodos();
     }
@@ -30,7 +30,7 @@ public class DepartamentoController {
         return departamentoService.buscarporId(id);
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public Departamento guardar (@RequestBody Departamento departamento){
         return departamentoService.guardar(departamento);
 
